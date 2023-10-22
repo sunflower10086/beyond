@@ -28,7 +28,7 @@ func NewVerificationLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Veri
 	}
 }
 
-// 发送验证码
+// Verification 发送验证码
 func (l *VerificationLogic) Verification(req *types.VerificationRequest) (resp *types.VerificationResponse, err error) {
 	// todo: add your logic here and delete this line
 
@@ -61,7 +61,7 @@ func (l *VerificationLogic) Verification(req *types.VerificationRequest) (resp *
 		return nil, err
 	}
 
-	return &types.VerificationResponse{}, nil
+	return nil, nil
 }
 
 func getActivationCache(mobile string, rds *redis.Redis) (string, error) {

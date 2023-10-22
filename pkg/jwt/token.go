@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -12,60 +11,63 @@ type MyClaims struct {
 	jwt.RegisteredClaims
 }
 
-var Secret = []byte("secret")
+type Token struct {
+	AccessToken  string
+	AccessExpire int64
+}
 
 const TokenExpireDuration = time.Hour * 24 * 7
 
 // CreateToken 生成Token
-func CreateToken(userId int) (string, error) {
-	t := MyClaims{
-		UserId: userId,
-		RegisteredClaims: jwt.RegisteredClaims{
-			// 过期时间
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpireDuration)),
-			// 签名时间
-			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    "kob",
-		},
+func CreateToken(Secret string, userId int) (Token, error) {
+	var RespToken Token
+	claims := jwt.MapClaims{
+		"userId": userId,
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, t)
-	// c.Set("token", token)
-	return token.SignedString(Secret)
-}
-
-// ParseToken 解析token
-func ParseToken(tokenString string) (*MyClaims, error) {
-	//tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-	token, err := jwt.ParseWithClaims(tokenString, &MyClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return Secret, nil
-	})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	accessToken, err := token.SignedString([]byte(Secret))
 	if err != nil {
-		return nil, err
+		return RespToken, err
 	}
-	if claims, ok := token.Claims.(*MyClaims); ok && token.Valid {
-		return claims, nil
-	}
-	return nil, errors.New("invalid token")
+	return Token{
+		AccessToken:  accessToken,
+		AccessExpire: time.Now().Add(TokenExpireDuration).Unix(),
+	}, nil
 }
 
-// RefreshToken 更新token的有效时间
-func RefreshToken(tokenString string) error {
-	token, err := jwt.ParseWithClaims(tokenString, &MyClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return Secret, nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// 更新token的有效时间
-	if claims, ok := token.Claims.(*MyClaims); ok && token.Valid {
-		jwt.TimeFunc = time.Now
-		claims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(TokenExpireDuration))
-		claims.RegisteredClaims.NotBefore = jwt.NewNumericDate(time.Now())
-	}
-
-	return nil
-}
+//// ParseToken 解析token
+//func ParseToken(tokenString string) (*MyClaims, error) {
+//	//tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+//	token, err := jwt.ParseWithClaims(tokenString, &MyClaims{}, func(token *jwt.Token) (interface{}, error) {
+//		return Secret, nil
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	if claims, ok := token.Claims.(*MyClaims); ok && token.Valid {
+//		return claims, nil
+//	}
+//	return nil, errors.New("invalid token")
+//}
+//
+//// RefreshToken 更新token的有效时间
+//func RefreshToken(tokenString string) error {
+//	token, err := jwt.ParseWithClaims(tokenString, &MyClaims{}, func(token *jwt.Token) (interface{}, error) {
+//		return Secret, nil
+//	})
+//	if err != nil {
+//		return err
+//	}
+//
+//	// 更新token的有效时间
+//	if claims, ok := token.Claims.(*MyClaims); ok && token.Valid {
+//		jwt.TimeFunc = time.Now
+//		claims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(TokenExpireDuration))
+//		claims.RegisteredClaims.NotBefore = jwt.NewNumericDate(time.Now())
+//	}
+//
+//	return nil
+//}
 
 // GenToken ⽣生成access token 和 refresh token
 //func GenToken(userID int) (aToken, rToken string, err error) {

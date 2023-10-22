@@ -3,11 +3,8 @@ Host: 0.0.0.0
 Port: 8888
 
 Auth:
-  AccessSecret: "beyondAccessSecret"
+  AccessSecret: hibug-tutor-test
   AccessExpire: 3600000
-  # RefreshSecret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-  # RefreshExpire: 2592000
-  # RefreshAfter: 604800
 
 UserRPC:
   Etcd:

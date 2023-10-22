@@ -52,7 +52,6 @@ service applet-api {
 @server (
 	prefix: /v1/user
 	group: user
-	signature: true
 	jwt: Auth
 	middleware: Auth
 )

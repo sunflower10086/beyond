@@ -1,7 +1,9 @@
 package logic
 
 import (
+	"beyond/application/user/rpc/internal/model"
 	"context"
+	"errors"
 
 	"beyond/application/user/rpc/internal/svc"
 	"beyond/application/user/rpc/pb"
@@ -24,7 +26,26 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 
 func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	// todo: add your logic here and delete this line
+	if in.Username == "" {
+		return nil, errors.New("用户名不能为空")
+	}
 
-	return &pb.RegisterResponse{}, nil
+	ret, err := l.svcCtx.UserModel.Insert(l.ctx, &model.User{
+		Username: in.Username,
+		Avatar:   in.Avatar,
+		Mobile:   in.Mobile,
+	})
+
+	if err != nil {
+		logx.Errorf("Register req: %v error: %v", in, err)
+		return nil, err
+	}
+
+	userId, err := ret.LastInsertId()
+	if err != nil {
+		logx.Errorf("LastInsertId error: %v", err)
+		return nil, err
+	}
+
+	return &pb.RegisterResponse{UserId: userId}, nil
 }

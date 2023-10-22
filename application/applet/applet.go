@@ -1,6 +1,7 @@
 package main
 
 import (
+	"beyond/pkg/errorx"
 	"flag"
 	"fmt"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 var configFile = flag.String("f", "etc/applet-api.yaml", "the config file")
@@ -25,6 +27,9 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+
+	httpx.SetErrorHandler(errorx.ErrHandler)
+	httpx.SetOkHandler(errorx.SuccessHandler)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

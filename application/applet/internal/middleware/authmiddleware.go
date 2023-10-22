@@ -1,20 +1,26 @@
 package middleware
 
 import (
-	"beyond/pkg/jwt"
+	"fmt"
 	"net/http"
+
+	"github.com/zeromicro/go-zero/rest/handler"
 )
 
 type AuthMiddleware struct {
+	Secret string
 }
 
-func NewAuthMiddleware() *AuthMiddleware {
-	return &AuthMiddleware{}
+func NewAuthMiddleware(secret string) *AuthMiddleware {
+	return &AuthMiddleware{
+		Secret: secret,
+	}
 }
 
 func (m *AuthMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
+		fmt.Println(authHeader)
 		if authHeader == "" {
 
 			return
@@ -25,11 +31,14 @@ func (m *AuthMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 		// 	return
 		// }
 
-		err := jwt.RefreshToken(authHeader)
-		if err != nil {
-			return
-		}
+		authHandler := handler.Authorize(m.Secret)
+
+		//err := jwt.RefreshToken(authHeader)
+		//if err != nil {
+		//	return
+		//}
 		// Passthrough to next handler if need
-		next(w, r)
+		authHandler(next).ServeHTTP(w, r)
+		//next(w, r)
 	}
 }

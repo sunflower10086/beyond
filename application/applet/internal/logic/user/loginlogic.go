@@ -1,15 +1,14 @@
 package user
 
 import (
-	"context"
-	"strings"
-	"time"
-
 	"beyond/application/applet/internal/svc"
 	"beyond/application/applet/internal/types"
 	"beyond/application/user/rpc/user"
-	"beyond/pkg/encrypt"
+	"beyond/pkg/codex"
+	"beyond/pkg/errorx"
 	"beyond/pkg/jwt"
+	"context"
+	"strings"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -29,50 +28,46 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 }
 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
-	// todo: add your logic here and delete this line
 	req.Mobile = strings.TrimSpace(req.Mobile)
 	if len(req.Mobile) == 0 {
-		return nil, err
+		return nil, errorx.WithCode("login", codex.CodeMobilePhoneIsEmpty)
 	}
 
 	req.VerificationCode = strings.TrimSpace(req.VerificationCode)
 	if len(req.VerificationCode) == 0 {
-		return nil, err
+		return nil, errorx.WithCode("login", codex.CodeSMSCodeIsEmpty)
 	}
 
 	if err = VerificationCode(req.Mobile, req.VerificationCode, l.svcCtx.Redis); err != nil {
-		return nil, err
+		err = errorx.Internal(err, err.Error()).WithError(err).WithMetadata(errorx.Metadata{
+			"Mobile":           req.Mobile,
+			"VerificationCode": req.VerificationCode,
+		})
+		return
 	}
 
-	mobile, err := encrypt.EncMobile(req.Mobile)
-	if err != nil {
-		logx.Errorf("EncMobile mobile: %s error: %v", req.Mobile, err)
-		return nil, err
-	}
-	u, err := l.svcCtx.UserRPC.FindByMobile(l.ctx, &user.FindByMobileRequest{Mobile: mobile})
+	u, err := l.svcCtx.UserRPC.FindByMobile(l.ctx, &user.FindByMobileRequest{Mobile: req.Mobile})
 	if err != nil {
 		logx.Errorf("FindByMobile error: %v", err)
 		return nil, err
 	}
 	if u == nil || u.UserId == 0 {
-		return nil, err
+		return nil, errorx.WithCode("login", codex.CodeUserIsExist)
 	}
-
-	token, err := jwt.CreateToken(int(u.UserId))
+	token, err := jwt.CreateToken(l.svcCtx.Config.Auth.AccessSecret, int(u.UserId))
 	if err != nil {
-		return nil, err
+		return nil, errorx.WithCode("login", codex.CodeInternalErr).WithError(err).WithMetadata(errorx.Metadata{
+			"userId": u.UserId,
+		})
 	}
 
 	_ = delActivationCache(req.Mobile, req.VerificationCode, l.svcCtx.Redis)
 
-	seconds := l.svcCtx.Config.Auth.AccessExpire
-	iat := time.Now().Unix()
-
 	return &types.LoginResponse{
 		UserId: u.UserId,
 		Token: types.Token{
-			AccessToken:  token,
-			AccessExpire: iat + seconds,
+			AccessToken:  token.AccessToken,
+			AccessExpire: token.AccessExpire,
 		},
 	}, nil
 }
