@@ -1,14 +1,13 @@
 package user
 
 import (
-	"context"
-
 	"beyond/application/applet/internal/common/cache"
 	"beyond/application/applet/internal/common/constants"
 	"beyond/application/applet/internal/svc"
 	"beyond/application/applet/internal/types"
 	"beyond/application/user/rpc/user"
 	"beyond/pkg/utils"
+	"context"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -30,8 +29,6 @@ func NewVerificationLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Veri
 
 // Verification 发送验证码
 func (l *VerificationLogic) Verification(req *types.VerificationRequest) (resp *types.VerificationResponse, err error) {
-	// todo: add your logic here and delete this line
-
 	// 校验手机号格式是否正确
 
 	// 发送验证码
@@ -62,6 +59,7 @@ func (l *VerificationLogic) Verification(req *types.VerificationRequest) (resp *
 	}
 
 	return nil, nil
+
 }
 
 func getActivationCache(mobile string, rds *redis.Redis) (string, error) {

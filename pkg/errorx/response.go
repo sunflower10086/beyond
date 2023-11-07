@@ -1,6 +1,7 @@
 package errorx
 
 import (
+	"beyond/pkg/codex"
 	"context"
 	"net/http"
 )
@@ -12,10 +13,11 @@ type Response struct {
 }
 
 func ErrHandler(err error) (int, any) {
+
 	var body Response
-	codeFrom := From(err)
-	body.Code = codeFrom.Code
-	body.Msg = codeFrom.Msg
+	codeFrom := codex.CodeFromError(err)
+	body.Code = codeFrom.Code()
+	body.Msg = codeFrom.Message()
 
 	return http.StatusOK, body
 }

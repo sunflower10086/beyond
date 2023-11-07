@@ -1,6 +1,7 @@
 package main
 
 import (
+	"beyond/pkg/interceptors"
 	"flag"
 	"fmt"
 
@@ -33,6 +34,8 @@ func main() {
 		}
 	})
 	defer s.Stop()
+
+	s.AddUnaryInterceptors(interceptors.ServerErrorInterceptor())
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()

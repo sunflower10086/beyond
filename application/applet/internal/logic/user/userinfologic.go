@@ -1,10 +1,10 @@
 package user
 
 import (
+	"beyond/application/applet/common/codex"
 	"beyond/application/applet/internal/svc"
 	"beyond/application/applet/internal/types"
 	"beyond/application/user/rpc/user"
-	"beyond/pkg/codex"
 	"beyond/pkg/errorx"
 	"context"
 	"encoding/json"

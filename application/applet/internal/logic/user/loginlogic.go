@@ -1,10 +1,10 @@
 package user
 
 import (
+	"beyond/application/applet/common/codex"
 	"beyond/application/applet/internal/svc"
 	"beyond/application/applet/internal/types"
 	"beyond/application/user/rpc/user"
-	"beyond/pkg/codex"
 	"beyond/pkg/errorx"
 	"beyond/pkg/jwt"
 	"context"
@@ -52,7 +52,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return nil, err
 	}
 	if u == nil || u.UserId == 0 {
-		return nil, errorx.WithCode("login", codex.CodeUserIsExist)
+		return nil, errorx.WithCode("login", codex.CodeUserNotExist)
 	}
 	token, err := jwt.CreateToken(l.svcCtx.Config.Auth.AccessSecret, int(u.UserId))
 	if err != nil {

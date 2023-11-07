@@ -1,8 +1,8 @@
 package user
 
 import (
+	"beyond/application/applet/common/codex"
 	"beyond/application/user/rpc/user"
-	"beyond/pkg/codex"
 	"beyond/pkg/encrypt"
 	"beyond/pkg/errorx"
 	"beyond/pkg/jwt"

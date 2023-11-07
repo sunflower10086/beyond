@@ -1,16 +1,16 @@
 package codex
 
-type ResCode int
+import "beyond/pkg/codex"
 
-const (
-	CodeSuccess ResCode = 200
+var (
+	CodeSuccess = codex.New(200, "操作成功")
 
-	CodeInvalidParams ResCode = 400
-	CodeInternalErr   ResCode = 500
+	CodeInvalidParams = codex.New(400, "参数错误")
+	CodeInternalErr   = codex.New(500, "服务器开小差啦，稍后再来试一试")
 
-	CodeMobilePhoneIsEmpty ResCode = 40001
-	CodeSMSCodeIsEmpty     ResCode = 40002
+	CodeMobilePhoneIsEmpty = codex.New(40001, "手机号码为空")
+	CodeSMSCodeIsEmpty     = codex.New(40002, "验证码为空")
 
-	CodeUserIsExist ResCode = 50001
-	CodeMobileExist ResCode = 50002
+	CodeUserNotExist = codex.New(50001, "用户不存在")
+	CodeMobileExist  = codex.New(50002, "手机号已存在")
 )

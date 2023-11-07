@@ -1,12 +1,11 @@
 package logic
 
 import (
+	"beyond/application/user/rpc/internal/code"
 	"beyond/application/user/rpc/internal/model"
-	"context"
-	"errors"
-
 	"beyond/application/user/rpc/internal/svc"
 	"beyond/application/user/rpc/pb"
+	"context"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -27,7 +26,7 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 
 func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	if in.Username == "" {
-		return nil, errors.New("用户名不能为空")
+		return nil, code.RegisterNameEmpty
 	}
 
 	ret, err := l.svcCtx.UserModel.Insert(l.ctx, &model.User{
