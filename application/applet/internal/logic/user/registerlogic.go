@@ -1,15 +1,14 @@
 package user
 
 import (
-	"beyond/application/applet/common/codex"
 	"beyond/application/user/rpc/user"
 	"beyond/pkg/encrypt"
-	"beyond/pkg/errorx"
 	"beyond/pkg/jwt"
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
+	"beyond/application/applet/internal/code"
 	"beyond/application/applet/internal/svc"
 	"beyond/application/applet/internal/types"
 
@@ -35,7 +34,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	req.Name = strings.TrimSpace(req.Name)
 	req.Mobile = strings.TrimSpace(req.Mobile)
 	if len(req.Mobile) == 0 {
-		return nil, errorx.WithCode("register", codex.CodeMobilePhoneIsEmpty)
+		return nil, code.RegisterMobileEmpty
 	}
 
 	req.Password = strings.TrimSpace(req.Password)
@@ -45,19 +44,12 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 
 	req.VerificationCode = strings.TrimSpace(req.VerificationCode)
 	if len(req.VerificationCode) == 0 {
-		return nil, errorx.WithCode("register", codex.CodeSMSCodeIsEmpty)
+		return nil, code.RegisterPasswdEmpty
 	}
 
 	err = VerificationCode(req.Mobile, req.VerificationCode, l.svcCtx.Redis)
 	if err != nil {
-		err = errorx.Internal(err, err.Error()).WithError(err).WithMetadata(errorx.Metadata{
-			"Mobile":           req.Mobile,
-			"VerificationCode": req.VerificationCode,
-		})
-		fmt.Println(err)
-		return
-
-		//return nil, err
+		return nil, err
 	}
 
 	// 看这个手机号是否绑定了其他人
@@ -69,7 +61,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		return nil, err
 	}
 	if u != nil && u.UserId > 0 {
-		return nil, errorx.WithCode("register", codex.CodeMobileExist)
+		return nil, code.MobileHasRegistered
 	}
 
 	// 开始注册
@@ -84,10 +76,8 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 
 	token, err := jwt.CreateToken(l.svcCtx.Config.Auth.AccessSecret, int(regRet.UserId))
 	if err != nil {
-		logx.Errorf("CreateToken error: %v", err)
-		return nil, errorx.WithCode("login", codex.CodeInternalErr).WithError(err).WithMetadata(errorx.Metadata{
-			"userId": u.UserId,
-		})
+		logx.Errorf("Register error: %v", err)
+		return nil, err
 	}
 
 	// 注册成功删除验证码
@@ -109,11 +99,11 @@ func VerificationCode(mobile, code string, redis *redis.Redis) error {
 	}
 
 	if cacheCode == "" {
-		return errorx.Internal(nil, "验证码过期")
+		return errors.New("verification code expired")
 	}
 
 	if cacheCode != code {
-		return errorx.Internal(nil, "验证码错误")
+		return errors.New("verification code expired")
 	}
 
 	return nil

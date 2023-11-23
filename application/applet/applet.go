@@ -1,7 +1,7 @@
 package main
 
 import (
-	"beyond/pkg/errorx"
+	"beyond/pkg/codex"
 	"flag"
 	"fmt"
 
@@ -28,8 +28,7 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
-	httpx.SetErrorHandler(errorx.ErrHandler)
-	httpx.SetOkHandler(errorx.SuccessHandler)
+	httpx.SetErrorHandler(codex.ErrHandler)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

@@ -1,11 +1,11 @@
 package user
 
 import (
-	"beyond/application/applet/common/codex"
+	"beyond/application/applet/internal/code"
 	"beyond/application/applet/internal/svc"
 	"beyond/application/applet/internal/types"
 	"beyond/application/user/rpc/user"
-	"beyond/pkg/errorx"
+	"beyond/pkg/codex"
 	"beyond/pkg/jwt"
 	"context"
 	"strings"
@@ -30,20 +30,16 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	req.Mobile = strings.TrimSpace(req.Mobile)
 	if len(req.Mobile) == 0 {
-		return nil, errorx.WithCode("login", codex.CodeMobilePhoneIsEmpty)
+		return nil, code.LoginMobileEmpty
 	}
 
 	req.VerificationCode = strings.TrimSpace(req.VerificationCode)
 	if len(req.VerificationCode) == 0 {
-		return nil, errorx.WithCode("login", codex.CodeSMSCodeIsEmpty)
+		return nil, code.VerificationCodeEmpty
 	}
 
 	if err = VerificationCode(req.Mobile, req.VerificationCode, l.svcCtx.Redis); err != nil {
-		err = errorx.Internal(err, err.Error()).WithError(err).WithMetadata(errorx.Metadata{
-			"Mobile":           req.Mobile,
-			"VerificationCode": req.VerificationCode,
-		})
-		return
+		return nil, err
 	}
 
 	u, err := l.svcCtx.UserRPC.FindByMobile(l.ctx, &user.FindByMobileRequest{Mobile: req.Mobile})
@@ -52,13 +48,11 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return nil, err
 	}
 	if u == nil || u.UserId == 0 {
-		return nil, errorx.WithCode("login", codex.CodeUserNotExist)
+		return nil, codex.AccessDenied
 	}
 	token, err := jwt.CreateToken(l.svcCtx.Config.Auth.AccessSecret, int(u.UserId))
 	if err != nil {
-		return nil, errorx.WithCode("login", codex.CodeInternalErr).WithError(err).WithMetadata(errorx.Metadata{
-			"userId": u.UserId,
-		})
+		return nil, err
 	}
 
 	_ = delActivationCache(req.Mobile, req.VerificationCode, l.svcCtx.Redis)

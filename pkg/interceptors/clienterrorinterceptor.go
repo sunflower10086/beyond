@@ -3,7 +3,6 @@ package interceptors
 import (
 	"beyond/pkg/codex"
 	"context"
-	"fmt"
 
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -18,11 +17,9 @@ func ClientErrorInterceptor() grpc.UnaryClientInterceptor {
 			// 把err转化为grpcStatus
 			grpcStatus, _ := status.FromError(err)
 			// 把grpcStatus转为Codex
-			xc := codex.GrpcStatusToXCode(grpcStatus)
+			xc := codex.GrpcStatusToCodeX(grpcStatus)
 			//
 			err = errors.WithMessage(xc, grpcStatus.Message())
-			fmt.Printf("%+v\n", grpcStatus)
-			fmt.Println(err)
 		}
 
 		return err

@@ -1,11 +1,9 @@
 package user
 
 import (
-	"beyond/application/applet/common/codex"
 	"beyond/application/applet/internal/svc"
 	"beyond/application/applet/internal/types"
 	"beyond/application/user/rpc/user"
-	"beyond/pkg/errorx"
 	"context"
 	"encoding/json"
 
@@ -27,33 +25,24 @@ func NewUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserInfo
 }
 
 func (l *UserInfoLogic) UserInfo() (resp *types.UserInfoResponse, err error) {
-	var (
-		userIdNum json.Number
-		ok        bool
-
-		userId int64
-	)
-
-	if userIdNum, ok = l.ctx.Value("userId").(json.Number); !ok {
-		return nil, errorx.WithCode("获取用户信息失败", codex.CodeInternalErr)
-	}
-
-	if userId, err = userIdNum.Int64(); err != nil {
-		err = errorx.WithCode("获取用户信息失败", codex.CodeInternalErr)
-		return
-	}
-
-	userInfo, err := l.svcCtx.UserRPC.FindById(l.ctx, &user.FindByIdRequest{
-		UserId: userId,
-	})
-
+	userId, err := l.ctx.Value("userId").(json.Number).Int64()
 	if err != nil {
 		return nil, err
 	}
-	resp = new(types.UserInfoResponse)
-	resp.UserId = userInfo.UserId
-	//resp.Avatar = userInfo.Avatar
-	resp.Username = userInfo.Username
+	if userId == 0 {
+		return nil, nil
+	}
+	u, err := l.svcCtx.UserRPC.FindById(l.ctx, &user.FindByIdRequest{
+		UserId: userId,
+	})
+	if err != nil {
+		logx.Errorf("FindById userId: %d error: %v", userId, err)
+		return nil, err
+	}
 
-	return resp, nil
+	return &types.UserInfoResponse{
+		UserId:   u.UserId,
+		Username: u.Username,
+		Avatar:   u.Avatar,
+	}, nil
 }
