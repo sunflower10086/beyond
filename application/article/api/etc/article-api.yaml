@@ -1,0 +1,20 @@
+Name: article-api
+Host: 0.0.0.0
+Port: 9090
+Timeout: 100000
+
+Auth:
+  AccessSecret: "beyondxxxxx"
+  AccessExpire: 3600000000
+
+ALiYunOSS:
+  Endpoint: "oss-cn-beijing.aliyuncs.com"
+  AK: "*******************"
+  AS: "*********************"
+  BucketName: "lz-beyond"
+
+ArticleRPC:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: article.rpc

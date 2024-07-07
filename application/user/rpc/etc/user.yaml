@@ -1,0 +1,21 @@
+Name: user.rpc
+ListenOn: 0.0.0.0:8080
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: user.rpc
+RedisConf:
+  Host: 127.0.0.1:6379
+  Pass: "123456"
+  Type: node
+
+Mysql:
+  DSN: "root:123456@tcp(127.0.0.1:3306)/beyond_user?charset=utf8&parseTime=True&loc=Local"
+  LogMode: true
+  MaxOpenCons: 10
+  MaxIdleCons: 10
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Pass: "123456"
+    Type: node
