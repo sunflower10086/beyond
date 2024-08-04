@@ -27,6 +27,7 @@ func main() {
 		serviceGroup.Add(consumer)
 	}
 
-	serviceGroup.Start()
 	fmt.Println("like mq service is running")
+	serviceGroup.Start()
+
 }
