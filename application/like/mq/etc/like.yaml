@@ -1,0 +1,10 @@
+Name: mq
+KqConsumerConf:
+  Name: topic-beyond-like-kqConsumer
+  Brokers:
+    - 127.0.0.1:9092
+  Group: kqConsumer
+  Topic: topic-beyond-like
+  Offset: last
+  Consumers: 8
+  Processors: 8

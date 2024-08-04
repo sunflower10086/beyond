@@ -1,8 +1,10 @@
 package main
 
 import (
+	"beyond/pkg/codex"
 	"flag"
 	"fmt"
+	"github.com/zeromicro/go-zero/rest/httpx"
 
 	"beyond/application/article/api/internal/config"
 	"beyond/application/article/api/internal/handler"
@@ -25,6 +27,7 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+	httpx.SetErrorHandler(codex.ErrHandler)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()
